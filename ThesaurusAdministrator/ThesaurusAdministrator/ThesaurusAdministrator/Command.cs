@@ -3,15 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace ThesaurusAdministrator
 {
-    class Program
+    abstract class ICommand<T>
     {
-        static void Main(string[] args)
-        {
-            Application.Run(new AdminConsole());
-        }
+        public ICommand(AdminConsole console);
+
+        public abstract void Call();
     }
 }
