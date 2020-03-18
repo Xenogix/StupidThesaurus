@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace ThesaurusAdministrator
@@ -21,94 +17,115 @@ namespace ThesaurusAdministrator
         {
             InitializeComponent();
 
-            commandManager = new CommandManager(this, Path.GetPathRoot(Environment.SystemDirectory));
+            commandManager = new CommandManager(this, Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
          
             UserRelease();
         }
 
-        private void RtbCommandPrompt_KeyPress(object sender, KeyPressEventArgs e)
+        private void RtbCommandPrompt_KeyPress(object sender, KeyEventArgs e)
         {
-            if(e.KeyChar == (char)13)
+            switch(e.KeyCode)
             {
-                string cmd = rtbCommandPrompt.Lines[rtbCommandPrompt.Lines.Length - 2];
-                List<string> parameters = new List<string>();
+                case Keys.Enter:
+                    e.Handled = true;
+                    SendCommand();
+                    break;
 
-                if (cmd != "")
-                {
+            }
+        }
 
-                    cmd = cmd.Substring(cmd.IndexOf(nonUserDelimiter) + nonUserDelimiter.Length, cmd.Length - cmd.IndexOf(nonUserDelimiter) - nonUserDelimiter.Length);
+        private void SendCommand()
+        {
+            string cmd = rtbCommandPrompt.Lines[rtbCommandPrompt.Lines.Length-1];
+            List<string> parameters = new List<string>();
+            rtbCommandPrompt.AppendText("\n");
 
-                    int commandLenght;
+            if (cmd != "")
+            {
+                cmd = cmd.Substring(cmd.IndexOf(nonUserDelimiter) + nonUserDelimiter.Length, cmd.Length - cmd.IndexOf(nonUserDelimiter) - nonUserDelimiter.Length);
 
-                    if ((commandLenght = cmd.IndexOf(" ")) != -1)
-                        if(commandLenght - 1 != cmd.IndexOf(" "))
-                            while(cmd.IndexOf(" ") != -1)
+                int commandLenght;
+
+                if ((commandLenght = cmd.IndexOf(" ")) != -1)
+                    if (commandLenght - 1 != cmd.IndexOf(" "))
+                        while (cmd.IndexOf(" ") != -1)
+                        {
+                            int fid = cmd.IndexOf(" ") + 1;
+                            int sid = cmd.IndexOf(" ", cmd.IndexOf(" ") + 1);
+
+                            if (fid != sid)
                             {
-                                int fid = cmd.IndexOf(" ") + 1;
-                                int sid = cmd.IndexOf(" ", cmd.IndexOf(" ") + 1);
-
-                                if (fid != sid)
+                                if (sid == -1)
                                 {
-                                    if (sid == -1)
+                                    if (fid != cmd.Length)
                                     {
-                                        if (fid != cmd.Length)
-                                        {
-                                            parameters.Add(cmd.Substring(fid, cmd.Length - fid));
-                                            cmd = cmd.Substring(0, fid);
-                                        }
-                                        else
-                                            cmd = cmd.Substring(0, fid - 1) + cmd.Substring(fid, cmd.Length - fid);
+                                        parameters.Add(cmd.Substring(fid, cmd.Length - fid));
+                                        cmd = cmd.Substring(0, fid);
                                     }
                                     else
-                                    {
-                                        parameters.Add(cmd.Substring(fid, sid - fid));
-                                        cmd = cmd.Substring(0, fid) + cmd.Substring(sid, cmd.Length - sid);
-                                    }
+                                        cmd = cmd.Substring(0, fid - 1) + cmd.Substring(fid, cmd.Length - fid);
                                 }
                                 else
-                                    cmd = cmd.Substring(0, fid - 1) + cmd.Substring(fid, cmd.Length - fid);
+                                {
+                                    parameters.Add(cmd.Substring(fid, sid - fid));
+                                    cmd = cmd.Substring(0, fid) + cmd.Substring(sid, cmd.Length - sid);
+                                }
                             }
+                            else
+                                cmd = cmd.Substring(0, fid - 1) + cmd.Substring(fid, cmd.Length - fid);
+                        }
 
-                    try {
-                        var @delegate = commandManager.Commands[cmd];
+                try
+                {
+                    var @delegate = commandManager.Commands[cmd];
 
+                    try
+                    {
+                        @delegate.DynamicInvoke((object)parameters.ToArray());
+                    }
+                    catch (Exception exd)
+                    {
                         try
                         {
-                            @delegate.DynamicInvoke((object) parameters.ToArray());
+                            WriteLine("Une erreur est survenue. ");
+                            WriteLine(commandManager.CommandsInfos.FirstOrDefault(x => x.Value == commandManager.CommandsInfos[cmd]).Key + " : " + commandManager.CommandsInfos[cmd]);
+                            commandManager.ShowLastError(null);
                         }
-                        catch(Exception exd)
+                        catch (Exception exci)
                         {
-                            try
-                            {
-                                Write("Une erreur est survenue. ");
-                                Write(commandManager.CommandsInfos.FirstOrDefault(x => x.Value == commandManager.CommandsInfos[cmd]).Key + " : " + commandManager.CommandsInfos[cmd]);
-                                commandManager.ShowLastError(null);
-                            }
-                            catch(Exception exci)
-                            {
-                                commandManager.ShowLastError(null);
-                            }
+                            commandManager.ShowLastError(null);
                         }
                     }
-                    catch(Exception ex) { Write("Commande inconnue. Tapez \"help\" pour voir la liste des commandes"); }
                 }
-
-                rtbCommandPrompt.AppendText("\n");
-                UserRelease();
+                catch (Exception ex) { WriteLine("Commande inconnue. Tapez \"help\" pour voir la liste des commandes"); }
             }
+
+            rtbCommandPrompt.AppendText("\n");
+            UserRelease();
+        }
+
+
+        public void WriteLine(string text)
+        {
+            rtbCommandPrompt.AppendText(text + "\n");
+            ProtectAllLines();
         }
 
         public void Write(string text)
         {
-            rtbCommandPrompt.ReadOnly = true;
-            rtbCommandPrompt.AppendText(text + "\n");
+            rtbCommandPrompt.AppendText(text);
             ProtectAllLines();
+        }
+
+        public string Delimiter()
+        {
+            return commandManager.Directory + nonUserDelimiter;
         }
 
         public void UserRelease()
         {
             rtbCommandPrompt.ReadOnly = false;
-            rtbCommandPrompt.AppendText(commandManager.Directory + nonUserDelimiter);
+            rtbCommandPrompt.AppendText(Delimiter());
             ProtectAllLines();
         }
 

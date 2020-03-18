@@ -57,7 +57,7 @@ namespace ThesaurusAdministrator
                 { "connectdatabase", new Call<string[]>(ConnectDatabase)},
                 { "cnndb", new Call<string[]>(ConnectDatabase)},
 
-                { "init", new Call<string[]>(InitializeDisk) },
+                { "init", new Call<string[]>(LoadDisk) },
                 //////////////////////////////
             };
 
@@ -78,10 +78,10 @@ namespace ThesaurusAdministrator
                 /////////////////////////
 
                 //Commandes d'initialisation//
-                { "connectdatabase", "Permet de se connecter à une base de données MySql\nParamètres : -d nomDeLaDB   -u nomUtilisateur   -p motDePasse"},
-                { "cnndb", "Permet de se connecter à une base de données MySql\nParamètres : -d nomDeLaDB   -u nomUtilisateur   -p motDePasse"},
+                { "connectdatabase", "Permet de se connecter à une base de données MySql\nParamètres : nomDeLaDB  nomUtilisateur  motDePasse"},
+                { "cnndb", "Permet de se connecter à une base de données MySql\nParamètres : nomDeLaDB  nomUtilisateur  motDePasse"},
 
-                { "init", "Initialise les fichiers d'un répertoire et les stock dans une base de donnée\nParamètres : -d nomDeLaDB"},
+                { "init", "Créer une nouvelle table dans la base qui contient toutes les informations nécéssaire des fichiers\nParamètres : nomDeLaDB cheminSource"},
                 //////////////////////////////
             };
         }
@@ -89,7 +89,7 @@ namespace ThesaurusAdministrator
         private void Help(string[] parameters)
         {
             foreach(string command in CommandsInfos.Keys)
-                Console.Write(command + " : " + CommandsInfos[command] + " \n");
+                Console.WriteLine(command + " : " + CommandsInfos[command] + " \n");
         }
 
         private void ScanDisk(string[] parameters)
@@ -100,7 +100,7 @@ namespace ThesaurusAdministrator
         {
 
         }
-
+        
         private void ChooseDirectory(string[] parameters)
         {
             string path = "";
@@ -135,14 +135,28 @@ namespace ThesaurusAdministrator
             }
         }
 
-        private void InitializeDisk(string[] parameters)
+        private void LoadDisk(string[] parameters)
         {
+            if (sqlConnection != null)
+            {
+                string[] files = Directory.GetFiles("C:\Users\na_trium\Desktop\", ".", SearchOption.AllDirectories);
+                int[] points = new int[files.Length];
+                int i = 0;
+                foreach (var file in files)
+                {
+                    Console.WriteLine(file);
 
+                    i++;
+                }
+            }
+            else
+            {
+            }
         }
 
         public void ShowLastError(string[] parameters)
         {
-            Console.Write(lastError);
+            Console.WriteLine(lastError);
         }
 
         private void ConsoleClear(string[] parameters)
@@ -156,12 +170,11 @@ namespace ThesaurusAdministrator
 
             try
             {
-                string database = parameters[Array.IndexOf(parameters, "-d") + 1];
-                string username = parameters[Array.IndexOf(parameters, "-u") + 1];
-                string password = parameters[Array.IndexOf(parameters, "-p") + 1];
-                string server = parameters[Array.IndexOf(parameters, "-s") + 1];
+                string username = parameters[1];
+                string password = parameters[2];
+                string server = parameters[0];
 
-                connetionString = "server=" + server + "; database=" + database + ";uid=" + username + ";pwd=" + password + ";";
+                connetionString = "server=" + server + ";uid=" + username + ";pwd=" + password + ";";
 
             }
             catch (Exception e)
@@ -174,7 +187,7 @@ namespace ThesaurusAdministrator
             {
                 sqlConnection = new MySqlConnection(connetionString);
                 sqlConnection.Open();
-                Console.Write("La connexion a été effectuée avec succès !");
+                Console.WriteLine("La connexion a été effectuée avec succès !");
             }
             catch (Exception exc)
             {

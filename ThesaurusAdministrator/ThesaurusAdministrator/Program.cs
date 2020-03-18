@@ -11,7 +11,12 @@ namespace ThesaurusAdministrator
     {
         static void Main(string[] args)
         {
+            SetProcessDPIAware();
+
             Application.Run(new AdminConsole());
         }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool SetProcessDPIAware();
     }
 }
