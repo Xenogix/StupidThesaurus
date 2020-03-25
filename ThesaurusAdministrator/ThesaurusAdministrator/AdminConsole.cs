@@ -119,7 +119,7 @@ namespace ThesaurusAdministrator
 
         public string Delimiter()
         {
-            return commandManager.Directory + nonUserDelimiter;
+            return commandManager.LocalDirectory + nonUserDelimiter;
         }
 
         public void UserRelease()

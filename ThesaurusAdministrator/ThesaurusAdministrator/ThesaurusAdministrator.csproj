@@ -75,6 +75,7 @@
       <DependentUpon>AdminConsole.cs</DependentUpon>
     </Compile>
     <Compile Include="CommandManager.cs" />
+    <Compile Include="FileScanner\FileScanner.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

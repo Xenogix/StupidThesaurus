@@ -22,14 +22,14 @@ namespace ThesaurusAdministrator
 
         private MySqlConnection sqlConnection;
 
-        public string Directory {get; set;}
+        public string LocalDirectory {get; set;}
 
         public CommandManager(AdminConsole cmd, string directory)
         {
             InitializeCommands();
 
             this.Console = cmd;
-            Directory = directory;
+            LocalDirectory = directory;
         }
 
         private void InitializeCommands()
@@ -40,12 +40,6 @@ namespace ThesaurusAdministrator
                 { "help", new Call<string[]>(Help)},
 
                 { "cls", new Call<string[]>(ConsoleClear)},
-
-                { "scdsk", new Call<string[]>(ScanDisk) },
-                { "scandisk", new Call<string[]>(ScanDisk)},
-
-                { "scdir", new Call<string[]>(ScanDir)},
-                { "scandir", new Call<string[]>(ScanDir)},
 
                 { "cd", new Call<string[]>(ChooseDirectory)},
 
@@ -68,12 +62,6 @@ namespace ThesaurusAdministrator
 
                 { "cls", "Efface la console"},
 
-                { "scdsk", "Affiche le contenu d'un répertoire et de tous ses sous-répertoires"},
-                { "scandisk", "Affiche le contenu d'un répertoire et de tous ses sous-répertoires"},
-
-                { "scdir", "Affiche le contenu d'un répertoire"},
-                { "scandir", "Affiche le contenu d'un répertoire"},
-
                 { "cd", "Permet de définir le répertoire actuel\nParamètres : cheminDuRéperetoire"},
                 /////////////////////////
 
@@ -92,15 +80,6 @@ namespace ThesaurusAdministrator
                 Console.WriteLine(command + " : " + CommandsInfos[command] + " \n");
         }
 
-        private void ScanDisk(string[] parameters)
-        {
-        }
-
-        private void ScanDir(string[] parameters)
-        {
-
-        }
-        
         private void ChooseDirectory(string[] parameters)
         {
             string path = "";
@@ -119,11 +98,11 @@ namespace ThesaurusAdministrator
             {
                 if (System.IO.Directory.Exists(path))
                 {
-                    Directory = path;
+                    LocalDirectory = path;
                 }
-                else if (System.IO.Directory.Exists(Directory + path))
+                else if (System.IO.Directory.Exists(LocalDirectory + path))
                 {
-                    Directory = Directory + path;
+                    LocalDirectory = LocalDirectory + path;
                 }
                 else
                     throw new FileNotFoundException();
@@ -139,18 +118,21 @@ namespace ThesaurusAdministrator
         {
             if (sqlConnection != null)
             {
-                string[] files = Directory.GetFiles("C:\Users\na_trium\Desktop\", ".", SearchOption.AllDirectories);
-                int[] points = new int[files.Length];
-                int i = 0;
-                foreach (var file in files)
+                try
                 {
-                    Console.WriteLine(file);
-
-                    i++;
+                    string[] files = Directory.GetFiles(LocalDirectory, ".", SearchOption.AllDirectories);
+                }
+                catch (Exception ex)
+                {
+                    lastError = ex.ToString();
+                    throw ex;
                 }
             }
             else
             {
+                Exception ex = new Exception("La connexion mysql n'a pas été faite\nVeuiller utiliser la commande \"cnndb\"");
+                lastError = ex.ToString();
+                throw ex;
             }
         }
 
