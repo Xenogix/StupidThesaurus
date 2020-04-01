@@ -114,7 +114,6 @@ namespace ThesaurusAdministrator
         public void Write(string text)
         {
             rtbCommandPrompt.AppendText(text);
-            ProtectAllLines();
         }
 
         public string Delimiter()

@@ -116,16 +116,26 @@ namespace ThesaurusAdministrator
 
         private void LoadDisk(string[] parameters)
         {
-            if (sqlConnection != null)
+
+            if (sqlConnection == null)
             {
                 try
                 {
-                    string[] files = Directory.GetFiles(LocalDirectory, ".", SearchOption.AllDirectories);
+                    string dbName = parameters[0];
+                    string filePath;
+
+                    if (parameters.Length < 2)
+                        filePath = LocalDirectory;
+                    else
+                        filePath = parameters[1];
+
+                    FileManager manager = new FileManager();
+
+                    List<IndexedFile> list = manager.GetAllFilesFromFolder(filePath, true, Console);
+                    Console.WriteLine("\n\n\n" + list.Count.ToString() + " fichiers ont été indexés");
                 }
-                catch (Exception ex)
-                {
-                    lastError = ex.ToString();
-                    throw ex;
+                catch (Exception ex) {
+
                 }
             }
             else

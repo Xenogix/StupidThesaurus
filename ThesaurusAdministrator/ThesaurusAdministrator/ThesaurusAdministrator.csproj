@@ -75,12 +75,13 @@
       <DependentUpon>AdminConsole.cs</DependentUpon>
     </Compile>
     <Compile Include="CommandManager.cs" />
-    <Compile Include="FileScanner\FileScanner.cs" />
+    <Compile Include="IndexedFile.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <Compile Include="FileManager.cs" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
