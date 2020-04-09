@@ -18,7 +18,7 @@ namespace ThesaurusAdministrator
             InitializeComponent();
 
             commandManager = new CommandManager(this, Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
-         
+
             UserRelease();
         }
 

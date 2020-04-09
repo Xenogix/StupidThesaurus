@@ -12,7 +12,7 @@ namespace ThesaurusAdministrator
         static void Main(string[] args)
         {
             SetProcessDPIAware();
-
+            FileManager manager = new FileManager();
             Application.Run(new AdminConsole());
         }
 

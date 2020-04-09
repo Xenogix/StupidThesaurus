@@ -24,6 +24,13 @@ namespace ThesaurusAdministrator
             while (folders.Count != 0)
             {
                 string currentFolder = folders.Dequeue();
+
+                try
+                {
+                    files.Add(new IndexedFile(FileType.Directory, currentFolder, currentFolder.Substring(currentFolder.LastIndexOf("\\") + 1, currentFolder.Length - currentFolder.LastIndexOf("\\") - 1)));
+                }
+                catch { }
+
                 try
                 {
                     string[] filesInCurrent = System.IO.Directory.GetFiles(currentFolder, ".", System.IO.SearchOption.TopDirectoryOnly);
@@ -68,10 +75,7 @@ namespace ThesaurusAdministrator
                         }
                     }
                 }
-                catch
-                {
-                    // Do Nothing
-                }
+                catch {}
             }
             return files;
         }

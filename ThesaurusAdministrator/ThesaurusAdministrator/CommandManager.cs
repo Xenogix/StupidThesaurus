@@ -67,7 +67,7 @@ namespace ThesaurusAdministrator
 
                 //Commandes d'initialisation//
                 { "connectdatabase", "Permet de se connecter à une base de données MySql\nParamètres : nomDeLaDB  nomUtilisateur  motDePasse"},
-                { "cnndb", "Permet de se connecter à une base de données MySql\nParamètres : nomDeLaDB  nomUtilisateur  motDePasse"},
+                { "cnndb", "Permet de se connecter à une base de données MySql\nParamètres : hôte  nomUtilisateur  motDePasse"},
 
                 { "init", "Créer une nouvelle table dans la base qui contient toutes les informations nécéssaire des fichiers\nParamètres : nomDeLaDB cheminSource"},
                 //////////////////////////////
@@ -117,7 +117,7 @@ namespace ThesaurusAdministrator
         private void LoadDisk(string[] parameters)
         {
 
-            if (sqlConnection == null)
+            if (sqlConnection != null)
             {
                 try
                 {
@@ -129,13 +129,54 @@ namespace ThesaurusAdministrator
                     else
                         filePath = parameters[1];
 
-                    FileManager manager = new FileManager();
+                    try
+                    {
+                        FileManager manager = new FileManager();
 
-                    List<IndexedFile> list = manager.GetAllFilesFromFolder(filePath, true, Console);
-                    Console.WriteLine("\n\n\n" + list.Count.ToString() + " fichiers ont été indexés");
+                        List<IndexedFile> list = manager.GetAllFilesFromFolder(filePath, true, Console);
+                        Console.WriteLine("\n\n\n" + list.Count.ToString() + " fichiers ont été indexés\n");
+
+                        try
+                        {
+                            sqlConnection.Open();
+                            MySqlCommand command = new MySqlCommand(GetCreationScript(dbName), sqlConnection);
+                            command.ExecuteNonQuery();
+                            Console.WriteLine("La base de donnée à bien été crée");
+                        }
+                        catch (MySqlException exdb)
+                        {
+                            lastError = exdb.ToString();
+                            sqlConnection.Close();
+                            throw exdb;
+                        }
+
+                        try
+                        {
+                            foreach (IndexedFile file in list)
+                            {
+                                var test = file.filType.ToString();
+                                MySqlCommand cmd = new MySqlCommand("INSERT INTO `"+dbName+"`.`files` (`filName`, `filType`, `filDirectory`, `filBasepoints`) VALUES('"+file.filName+"', '"+ file.filType.ToString() + "', '"+file.filDirectory+"', '');", sqlConnection);
+                                cmd.ExecuteNonQuery();
+                                Console.WriteLine("Le fichier "+file.filName+" à été importé dans la base de donnée");
+                            }
+                        }
+                        catch (Exception exf)
+                        {
+                            lastError = exf.ToString();
+                            sqlConnection.Close();
+                            throw exf;
+                        }
+                    }
+                    catch (Exception exf)
+                    {
+                        lastError = exf.ToString();
+                        throw exf;
+                    }
                 }
-                catch (Exception ex) {
-
+                catch (Exception e)
+                {
+                    lastError = e.ToString();
+                    throw e;
                 }
             }
             else
@@ -180,12 +221,18 @@ namespace ThesaurusAdministrator
                 sqlConnection = new MySqlConnection(connetionString);
                 sqlConnection.Open();
                 Console.WriteLine("La connexion a été effectuée avec succès !");
+                sqlConnection.Close();
             }
             catch (Exception exc)
             {
                 lastError = exc.ToString();
                 throw exc;
             }
+        }
+
+        private string GetCreationScript(string dbName)
+        {
+            return Properties.Resources.DBTemplate.Replace("NAMEHERE", dbName);
         }
     }
 }
