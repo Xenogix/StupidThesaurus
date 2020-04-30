@@ -139,6 +139,7 @@ SET time_zone = "+00:00";
 --
 -- Base de données :  `NAMEHERE`
 --
+DROP DATABASE IF EXISTS `NAMEHERE`;
 CREATE DATABASE IF NOT EXISTS `NAMEHERE` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci;
 USE `NAMEHERE`;
 
@@ -162,7 +163,6 @@ CREATE TABLE IF NOT EXISTS `files` (
 --
 -- Structure de la table `filetypes`
 --
-
 CREATE TABLE IF NOT EXISTS `filetypes` (
 `typID` int(11) NOT NULL,
   `typName` varchar(30) NOT NULL

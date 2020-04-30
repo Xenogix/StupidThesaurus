@@ -152,10 +152,11 @@ namespace ThesaurusAdministrator
 
                         try
                         {
+                            MySqlCommand cmd;
                             foreach (IndexedFile file in list)
                             {
                                 var test = file.filType.ToString();
-                                MySqlCommand cmd = new MySqlCommand("INSERT INTO `"+dbName+"`.`files` (`filName`, `filType`, `filDirectory`, `filBasepoints`) VALUES('"+file.filName+"', '"+ file.filType.ToString() + "', '"+file.filDirectory+"', '');", sqlConnection);
+                                cmd = new MySqlCommand("INSERT INTO `"+dbName+"`.`files` (`filName`, `filType`, `filDirectory`, `filBasepoints`) VALUES('"+file.filName+"', '"+ file.filType.ToString() + "', '"+file.filDirectory+"', '');", sqlConnection);
                                 cmd.ExecuteNonQuery();
                                 Console.WriteLine("Le fichier "+file.filName+" à été importé dans la base de donnée");
                             }
