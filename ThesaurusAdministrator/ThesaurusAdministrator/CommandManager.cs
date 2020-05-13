@@ -2,7 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Collections;
+using System.Drawing;
+using System.Timers;
 
 namespace ThesaurusAdministrator
 {
@@ -22,14 +23,18 @@ namespace ThesaurusAdministrator
 
         private MySqlConnection sqlConnection;
 
+        private Timer connexionTestTimer = new Timer(1000);
+
         public string LocalDirectory {get; set;}
 
         public CommandManager(AdminConsole cmd, string directory)
         {
             InitializeCommands();
 
-            this.Console = cmd;
+            Console = cmd;
             LocalDirectory = directory;
+
+            connexionTestTimer.Elapsed += new ElapsedEventHandler(CheckDatabaseConnexion);
         }
 
         private void InitializeCommands()
@@ -210,6 +215,10 @@ namespace ThesaurusAdministrator
 
                 connetionString = "server=" + server + ";uid=" + username + ";pwd=" + password + ";";
 
+                Console.lblIP.Text = server;
+                Console.lblUser.Text = username;
+                Console.lblStatus.Text = "Disconnected";
+                Console.lblStatus.ForeColor = Color.DarkRed;
             }
             catch (Exception e)
             {
@@ -223,9 +232,15 @@ namespace ThesaurusAdministrator
                 sqlConnection.Open();
                 Console.WriteLine("La connexion a été effectuée avec succès !");
                 sqlConnection.Close();
+
+                Console.lblStatus.Text = "Connected";
+                Console.lblStatus.ForeColor = Color.DarkGreen;
+
+                connexionTestTimer.Start();
             }
             catch (Exception exc)
             {
+                connexionTestTimer.Start();
                 lastError = exc.ToString();
                 throw exc;
             }
@@ -234,6 +249,31 @@ namespace ThesaurusAdministrator
         private string GetCreationScript(string dbName)
         {
             return Properties.Resources.DBTemplate.Replace("NAMEHERE", dbName);
+        }
+
+        private void CheckDatabaseConnexion(object sender, ElapsedEventArgs e)
+        {
+            try
+            {
+                if(sqlConnection.State != System.Data.ConnectionState.Open)
+                    sqlConnection.Open();
+
+                sqlConnection.Close();
+
+                Console.lblStatus.Invoke(new System.Windows.Forms.MethodInvoker(delegate
+                {
+                    Console.lblStatus.Text = "Connected";
+                    Console.lblStatus.ForeColor = Color.DarkGreen;
+                }));
+            }
+            catch (Exception exc)
+            {
+                Console.lblStatus.Invoke(new System.Windows.Forms.MethodInvoker(delegate
+                {
+                    Console.lblStatus.Text = "Disconnected";
+                    Console.lblStatus.ForeColor = Color.DarkRed;
+                }));
+            }
         }
     }
 }
