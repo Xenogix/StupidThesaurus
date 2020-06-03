@@ -136,14 +136,14 @@ namespace ThesaurusAdministrator
 
                     try
                     {
+                        Console.lblSrc.Text = filePath.ToString();
                         FileManager manager = new FileManager();
-
+                        
                         List<IndexedFile> list = manager.GetAllFilesFromFolder(filePath, true, Console);
                         Console.WriteLine("\n\n\n" + list.Count.ToString() + " fichiers ont été indexés\n");
 
                         try
                         {
-                            sqlConnection.Open();
                             MySqlCommand command = new MySqlCommand(GetCreationScript(dbName), sqlConnection);
                             command.ExecuteNonQuery();
                             Console.WriteLine("La base de donnée à bien été crée");
@@ -157,13 +157,18 @@ namespace ThesaurusAdministrator
 
                         try
                         {
+                            int count = 0;
+
                             MySqlCommand cmd;
+
                             foreach (IndexedFile file in list)
                             {
                                 var test = file.filType.ToString();
                                 cmd = new MySqlCommand("INSERT INTO `"+dbName+"`.`files` (`filName`, `filType`, `filDirectory`, `filBasepoints`) VALUES('"+file.filName+"', '"+ file.filType.ToString() + "', '"+file.filDirectory+"', '');", sqlConnection);
                                 cmd.ExecuteNonQuery();
                                 Console.WriteLine("Le fichier "+file.filName+" à été importé dans la base de donnée");
+                                count++;
+                                Console.lblCount.Text = count.ToString();
                             }
                         }
                         catch (Exception exf)
@@ -182,6 +187,7 @@ namespace ThesaurusAdministrator
                 catch (Exception e)
                 {
                     lastError = e.ToString();
+                    Console.lblStatus2.Text = "Error";
                     throw e;
                 }
             }
@@ -189,6 +195,7 @@ namespace ThesaurusAdministrator
             {
                 Exception ex = new Exception("La connexion mysql n'a pas été faite\nVeuiller utiliser la commande \"cnndb\"");
                 lastError = ex.ToString();
+                Console.lblStatus2.Text = "Error";
                 throw ex;
             }
         }
@@ -258,21 +265,14 @@ namespace ThesaurusAdministrator
                 if(sqlConnection.State != System.Data.ConnectionState.Open)
                     sqlConnection.Open();
 
-                sqlConnection.Close();
-
-                Console.lblStatus.Invoke(new System.Windows.Forms.MethodInvoker(delegate
-                {
-                    Console.lblStatus.Text = "Connected";
-                    Console.lblStatus.ForeColor = Color.DarkGreen;
-                }));
+                Console.lblStatus.Text = "Connected";
+                Console.lblStatus.ForeColor = Color.DarkGreen;
             }
             catch (Exception exc)
             {
-                Console.lblStatus.Invoke(new System.Windows.Forms.MethodInvoker(delegate
-                {
-                    Console.lblStatus.Text = "Disconnected";
-                    Console.lblStatus.ForeColor = Color.DarkRed;
-                }));
+                sqlConnection.Close();
+                Console.lblStatus.Text = "Disconnected";
+                Console.lblStatus.ForeColor = Color.DarkRed;
             }
         }
     }
