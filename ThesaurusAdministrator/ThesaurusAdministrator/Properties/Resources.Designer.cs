@@ -77,10 +77,7 @@ namespace ThesaurusAdministrator.Properties {
         ////*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
         ////*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
         ////*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-        ////*!40101 SET NAMES utf8 */;
-        ///
-        ///--
-        ///-- Base  [le reste de la chaîne a été tronqué]&quot;;.
+        ////*!40101 SET NAMES utf8  [le reste de la chaîne a été tronqué]&quot;;.
         /// </summary>
         internal static string DBTemplate {
             get {

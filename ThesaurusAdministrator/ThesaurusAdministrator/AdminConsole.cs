@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace ThesaurusAdministrator
@@ -74,34 +76,40 @@ namespace ThesaurusAdministrator
                             else
                                 cmd = cmd.Substring(0, fid - 1) + cmd.Substring(fid, cmd.Length - fid);
                         }
-
                 try
                 {
                     var @delegate = commandManager.Commands[cmd];
 
-                    try
-                    {
-                        @delegate.DynamicInvoke((object)parameters.ToArray());
-                    }
-                    catch (Exception exd)
-                    {
-                        try
-                        {
-                            WriteLine("Une erreur est survenue. ");
-                            WriteLine(commandManager.CommandsInfos.FirstOrDefault(x => x.Value == commandManager.CommandsInfos[cmd]).Key + " : " + commandManager.CommandsInfos[cmd]);
-                            commandManager.ShowLastError(null);
-                        }
-                        catch (Exception exci)
-                        {
-                            commandManager.ShowLastError(null);
-                        }
-                    }
+                    ThreadPool.QueueUserWorkItem(Execute, new object[] {@delegate, parameters });
                 }
-                catch (Exception ex) { WriteLine("Commande inconnue. Tapez \"help\" pour voir la liste des commandes"); }
+                catch (Exception ex) { 
+                    WriteLine("Commande inconnue. Tapez \"help\" pour voir la liste des commandes");
+                    rtbCommandPrompt.AppendText("\n");
+                    UserRelease();
+                }
             }
+        }
 
-            rtbCommandPrompt.AppendText("\n");
-            UserRelease();
+        private void Execute(object o)
+        {
+            Invoke(new MethodInvoker(() =>
+            {
+                try
+                {
+                    object[] array = o as object[];
+                    Delegate @delegate = array[0] as Delegate;
+                    string[] parameters = ((IEnumerable)array[1]).Cast<object>().Select(x => x.ToString()).ToArray();
+
+                    @delegate.DynamicInvoke((object)parameters.ToArray());
+
+                    rtbCommandPrompt.AppendText("\n");
+                    UserRelease();
+                }
+                catch (Exception exci)
+                {
+                    commandManager.ShowLastError(null);
+                }
+            }));
         }
 
 

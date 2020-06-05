@@ -83,6 +83,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Readers\FileReader.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
